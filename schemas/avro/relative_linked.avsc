@@ -1,0 +1,38 @@
+{
+  "type": "record",
+  "name": "RelativeLinked",
+  "namespace": "com.healthcare.events.v1",
+  "doc": "Emitted when a family member relationship is established between two persons. Triggers Neo4j edge creation and FamilyMemberHistory upsert.",
+  "fields": [
+    {"name": "event_id",              "type": "string"},
+    {"name": "event_timestamp",       "type": {"type": "long", "logicalType": "timestamp-micros"}},
+    {"name": "event_version",         "type": "string", "default": "1.0"},
+    {"name": "source_system",         "type": "string"},
+    {"name": "fmh_id",                "type": "string",
+     "doc": "UUID of the FamilyMemberHistory record in Postgres"},
+    {"name": "patient_id",            "type": "string",
+     "doc": "The patient this history record belongs to"},
+    {"name": "related_patient_id",    "type": ["null", "string"], "default": null,
+     "doc": "If the relative is also an active patient in the system"},
+    {"name": "relationship_code",     "type": "string",
+     "doc": "HL7 v3 FamilyMember code: MTH, FTH, SIB, CHILD, GRPRN, etc."},
+    {"name": "relationship_display",  "type": ["null", "string"], "default": null},
+    {"name": "degree_of_relatedness", "type": ["null", "double"], "default": null,
+     "doc": "Wright coefficient: 0.5 = 1st-degree, 0.25 = 2nd-degree, 0 = spouse"},
+    {"name": "sex",                   "type": ["null", "string"], "default": null},
+    {"name": "born_date",             "type": ["null", {"type": "int", "logicalType": "date"}], "default": null},
+    {"name": "deceased",              "type": ["null", "boolean"], "default": null},
+    {"name": "deceased_age_years",    "type": ["null", "int"],    "default": null},
+    {"name": "conditions",            "type": {"type": "array", "items": {
+      "type": "record",
+      "name": "FamilyCondition",
+      "fields": [
+        {"name": "code_system",  "type": "string"},
+        {"name": "code",         "type": "string"},
+        {"name": "code_display", "type": ["null", "string"], "default": null},
+        {"name": "is_hereditary","type": "boolean", "default": false},
+        {"name": "onset_age_years","type": ["null", "int"], "default": null}
+      ]
+    }}, "default": []}
+  ]
+}

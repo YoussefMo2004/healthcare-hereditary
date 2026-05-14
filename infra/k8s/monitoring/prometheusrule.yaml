@@ -1,0 +1,76 @@
+# Requires prometheus-operator. Mirrors the alert rules from
+# infra/prometheus/alerts.yml into the Kubernetes-native CRD format.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: healthcare-api-alerts
+  namespace: healthcare
+  labels:
+    app: healthcare-api
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: healthcare.availability
+      interval: 1m
+      rules:
+        - alert: HealthcareAPIDown
+          expr: absent(healthcare_http_requests_total)
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Healthcare API is not emitting metrics"
+            description: "No requests seen for 2+ minutes — service may be down."
+
+        - alert: HealthcareModelNotLoaded
+          expr: healthcare_model_loaded == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "ML model is not loaded"
+            description: "healthcare_model_loaded=0 for 5+ minutes — predictions will fail."
+
+    - name: healthcare.latency
+      interval: 1m
+      rules:
+        - alert: HighP99Latency
+          expr: >
+            histogram_quantile(0.99,
+              sum(rate(healthcare_http_request_duration_seconds_bucket{path="/predict/hereditary-risk"}[5m])) by (le)
+            ) > 3
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High p99 latency on /predict/hereditary-risk"
+            description: "p99 latency > 3 s for 5+ minutes."
+
+    - name: healthcare.errors
+      interval: 1m
+      rules:
+        - alert: HighErrorRate
+          expr: >
+            100 * sum(rate(healthcare_http_requests_total{status=~"5.."}[5m]))
+                / sum(rate(healthcare_http_requests_total[5m])) > 5
+          for: 3m
+          labels:
+            severity: critical
+          annotations:
+            summary: "5xx error rate > 5%"
+            description: "Server error rate has been above 5% for 3+ minutes."
+
+    - name: healthcare.ml
+      interval: 5m
+      rules:
+        - alert: HighPredictionRiskScore
+          expr: >
+            histogram_quantile(0.90,
+              sum(rate(healthcare_prediction_risk_score_bucket[30m])) by (le)
+            ) > 0.75
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: "p90 risk score elevated above 0.75"
+            description: "90th-percentile risk score has been above 0.75 for 30+ minutes — possible data drift."

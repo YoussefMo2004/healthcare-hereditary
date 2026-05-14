@@ -1,0 +1,32 @@
+{
+  "type": "record",
+  "name": "DiagnosisAdded",
+  "namespace": "com.healthcare.events.v1",
+  "doc": "Emitted when a diagnosis (FHIR Condition) is added or updated for a patient.",
+  "fields": [
+    {"name": "event_id",          "type": "string"},
+    {"name": "event_timestamp",   "type": {"type": "long", "logicalType": "timestamp-micros"}},
+    {"name": "event_version",     "type": "string", "default": "1.0"},
+    {"name": "source_system",     "type": "string"},
+    {"name": "condition_id",      "type": "string",
+     "doc": "UUID — matches condition.id in Postgres"},
+    {"name": "patient_id",        "type": "string"},
+    {"name": "encounter_id",      "type": ["null", "string"], "default": null},
+    {"name": "recorder_id",       "type": ["null", "string"], "default": null,
+     "doc": "Physician UUID who recorded the diagnosis"},
+    {"name": "clinical_status",   "type": "string",
+     "doc": "FHIR clinical status: active | remission | resolved | ..."},
+    {"name": "verification_status","type": ["null", "string"], "default": null,
+     "doc": "FHIR verification status: confirmed | unconfirmed | ..."},
+    {"name": "severity",          "type": ["null", "string"], "default": null},
+    {"name": "code_system",       "type": "string",
+     "doc": "Coding system URI (e.g., http://hl7.org/fhir/sid/icd-10)"},
+    {"name": "code",              "type": "string",
+     "doc": "ICD-10 or SNOMED CT code"},
+    {"name": "code_display",      "type": ["null", "string"], "default": null},
+    {"name": "onset_datetime",    "type": ["null", {"type": "long", "logicalType": "timestamp-micros"}], "default": null},
+    {"name": "onset_age_years",   "type": ["null", "int"],    "default": null},
+    {"name": "is_hereditary",     "type": "boolean",          "default": false},
+    {"name": "family_history_flag","type": "boolean",         "default": false}
+  ]
+}

@@ -1,0 +1,14 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: healthcare-api
+  namespace: healthcare
+  labels:
+    app: healthcare-api
+spec:
+  # Ensure at least 2 pods are always available during voluntary disruptions
+  # (node drain, rolling updates, cluster upgrades).
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: healthcare-api

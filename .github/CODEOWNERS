@@ -1,0 +1,44 @@
+# Code ownership and review responsibilities
+
+# Global owners (review all PRs)
+* @owner @maintainer
+
+# Services (API & UI)
+/services/ @owner @api-maintainer
+/services/api/ @owner @backend-maintainer
+/services/streamlit/ @owner @frontend-maintainer
+
+# Machine Learning
+/ml/ @owner @ml-maintainer
+/ml/training/ @owner @ml-maintainer
+/ml/models/ @owner @ml-maintainer
+
+# Data Pipelines
+/pipelines/ @owner @data-engineer
+/schemas/ @owner @data-engineer
+
+# Infrastructure
+/infra/ @owner @devops-maintainer
+/infra/docker/ @owner @devops-maintainer
+/infra/kubernetes/ @owner @devops-maintainer
+/infra/terraform/ @owner @devops-maintainer
+
+# Libraries
+/libs/ @owner @lib-maintainer
+
+# Tests
+/tests/ @owner
+
+# Documentation
+*.md @owner @doc-maintainer
+/docs/ @owner @doc-maintainer
+
+# Configuration files
+.github/ @owner
+pyproject.toml @owner
+setup.py @owner
+requirements*.txt @owner
+Dockerfile* @owner @devops-maintainer
+
+# GitHub workflows
+.github/workflows/ @owner @devops-maintainer

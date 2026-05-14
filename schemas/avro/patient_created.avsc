@@ -1,0 +1,29 @@
+{
+  "type": "record",
+  "name": "PatientCreated",
+  "namespace": "com.healthcare.events.v1",
+  "doc": "Emitted when a patient record is created or upserted from any source system.",
+  "fields": [
+    {"name": "event_id",        "type": "string",
+     "doc": "UUID v4 — unique per event, used for idempotency checks"},
+    {"name": "event_timestamp", "type": {"type": "long", "logicalType": "timestamp-micros"},
+     "doc": "UTC epoch microseconds when the event was produced"},
+    {"name": "event_version",   "type": "string", "default": "1.0"},
+    {"name": "source_system",   "type": "string",
+     "doc": "Originating system identifier (e.g., 'ehr-primary', 'fhir-import')"},
+    {"name": "patient_id",      "type": "string",
+     "doc": "UUID primary key — matches patient.id in Postgres and :Patient.id in Neo4j"},
+    {"name": "external_id",          "type": ["null", "string"],  "default": null},
+    {"name": "identifier_system",    "type": ["null", "string"],  "default": null},
+    {"name": "family_name",          "type": ["null", "string"],  "default": null},
+    {"name": "given_name",           "type": ["null", "string"],  "default": null},
+    {"name": "middle_name",          "type": ["null", "string"],  "default": null},
+    {"name": "date_of_birth",        "type": ["null", {"type": "int", "logicalType": "date"}], "default": null},
+    {"name": "gender",               "type": ["null", "string"],  "default": null,
+     "doc": "FHIR AdministrativeGender: male | female | other | unknown"},
+    {"name": "ethnicity",            "type": ["null", "string"],  "default": null},
+    {"name": "race",                 "type": ["null", "string"],  "default": null},
+    {"name": "deceased",             "type": "boolean",           "default": false},
+    {"name": "research_consent",     "type": "boolean",           "default": false}
+  ]
+}

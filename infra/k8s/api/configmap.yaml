@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: healthcare-api-config
+  namespace: healthcare
+  labels:
+    app: healthcare-api
+data:
+  APP_ENV: "production"
+  APP_LOG_LEVEL: "INFO"
+
+  # Auth
+  JWT_ALGORITHM: "HS256"
+  JWT_EXPIRE_MINUTES: "60"
+  ENCRYPTION_KEY_ID: "v1"
+
+  # Feature flags
+  ENABLE_GNN_MODEL: "false"
+  ENABLE_SYMPTOM_MODEL: "false"
+
+  # Model serving
+  MODEL_NAME: "hereditary-risk-xgboost"
+  MODEL_STAGE: "Production"
+
+  # Kafka (managed by separate StatefulSet or MSK)
+  KAFKA_BOOTSTRAP_SERVERS: "kafka.healthcare.svc.cluster.local:9092"
+  KAFKA_SCHEMA_REGISTRY_URL: "http://schema-registry.healthcare.svc.cluster.local:8081"
+
+  # MinIO / S3 (update endpoint for AWS S3 in production)
+  MINIO_ENDPOINT: "http://minio.healthcare.svc.cluster.local:9000"
+  MINIO_BUCKET_RAW: "healthcare-raw"
+  MINIO_BUCKET_DELTA: "healthcare-delta"
+  DELTA_BASE: "s3a://healthcare-delta"
+
+  # MLflow
+  MLFLOW_TRACKING_URI: "http://mlflow.healthcare.svc.cluster.local:5000"
+  MLFLOW_EXPERIMENT_NAME: "hereditary-disease-prediction"

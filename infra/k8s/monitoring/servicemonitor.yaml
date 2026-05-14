@@ -1,0 +1,20 @@
+# Requires prometheus-operator (kube-prometheus-stack) to be installed.
+# This tells Prometheus to scrape the healthcare-api /metrics endpoint.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: healthcare-api
+  namespace: healthcare
+  labels:
+    app: healthcare-api
+    release: kube-prometheus-stack    # must match the Prometheus operator's serviceMonitorSelector
+spec:
+  selector:
+    matchLabels:
+      app: healthcare-api
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
+      scheme: http

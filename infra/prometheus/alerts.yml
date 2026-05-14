@@ -1,0 +1,150 @@
+# Prometheus alerting rules for the Healthcare Prediction System.
+#
+# Severity levels:
+#   critical  — PagerDuty / on-call page; service is down or data is at risk
+#   warning   — Slack notification; investigate within business hours
+#   info      — Logged only; no notification
+
+groups:
+
+  # ── API Availability ────────────────────────────────────────────────────────
+  - name: api_availability
+    rules:
+
+      - alert: ApiDown
+        expr: absent(healthcare_http_requests_total)
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Healthcare API is unreachable"
+          description: >
+            No scrape data received from healthcare-api for >2 minutes.
+            The container may be down or the /metrics endpoint is broken.
+          runbook: "docs/runbooks/api_down.md"
+
+      - alert: HighErrorRate
+        expr: >
+          (
+            sum(rate(healthcare_http_requests_total{status=~"5.."}[5m]))
+            /
+            sum(rate(healthcare_http_requests_total[5m]))
+          ) > 0.05
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "API 5xx error rate > 5%"
+          description: >
+            {{ $value | humanizePercentage }} of requests are returning 5xx
+            errors over the last 5 minutes.
+          runbook: "docs/runbooks/high_error_rate.md"
+
+      - alert: HighClientErrorRate
+        expr: >
+          (
+            sum(rate(healthcare_http_requests_total{status=~"4.."}[5m]))
+            /
+            sum(rate(healthcare_http_requests_total[5m]))
+          ) > 0.20
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "API 4xx error rate > 20%"
+          description: >
+            {{ $value | humanizePercentage }} of requests are returning 4xx
+            — may indicate bad client inputs, auth failures, or rate limiting.
+
+  # ── Latency ─────────────────────────────────────────────────────────────────
+  - name: api_latency
+    rules:
+
+      - alert: HighP99Latency
+        expr: >
+          histogram_quantile(
+            0.99,
+            sum(rate(healthcare_http_request_duration_seconds_bucket[5m])) by (le, path)
+          ) > 2.0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "p99 latency > 2s on {{ $labels.path }}"
+          description: >
+            The 99th percentile latency for {{ $labels.path }} has exceeded
+            2 seconds for the past 5 minutes (current: {{ $value | humanizeDuration }}).
+
+      - alert: SlowPredictionEndpoint
+        expr: >
+          histogram_quantile(
+            0.95,
+            sum(rate(healthcare_http_request_duration_seconds_bucket{
+              path="/predict/hereditary-risk"
+            }[5m])) by (le)
+          ) > 1.0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Hereditary risk prediction p95 > 1s"
+          description: >
+            p95 latency for /predict/hereditary-risk exceeds 1s.
+            Check Neo4j graph query performance and Redis cache hit rate.
+
+  # ── ML Model ─────────────────────────────────────────────────────────────────
+  - name: ml_model
+    rules:
+
+      - alert: ModelNotLoaded
+        expr: healthcare_model_loaded == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "XGBoost model is not loaded"
+          description: >
+            The hereditary risk model has been unloaded or failed to load
+            for >5 minutes.  All /predict/hereditary-risk requests will
+            return HTTP 503.
+          runbook: "docs/runbooks/model_not_loaded.md"
+
+      - alert: LowPredictionVolume
+        expr: >
+          rate(healthcare_http_requests_total{path="/predict/hereditary-risk",status="200"}[1h]) < 0.001
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Very low prediction volume"
+          description: >
+            Fewer than ~4 successful predictions per hour for 30+ minutes.
+            May indicate the model is down or clients are failing before
+            reaching the endpoint.
+
+      - alert: HighRiskScoreBias
+        expr: >
+          histogram_quantile(0.5, rate(healthcare_prediction_risk_score_bucket[1h])) > 0.8
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Median predicted risk score > 0.8"
+          description: >
+            The median risk score has been > 0.8 for 15 minutes.
+            This may indicate a calibration problem or feature distribution shift.
+
+  # ── Rate Limiting ─────────────────────────────────────────────────────────────
+  - name: rate_limiting
+    rules:
+
+      - alert: HighRateLimitRejectionRate
+        expr: rate(healthcare_rate_limit_rejected_total[5m]) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "More than 1 request/s rejected by rate limiter"
+          description: >
+            {{ $value }} requests per second are being rejected on {{ $labels.path }}.
+            This may indicate a client bug, scraper, or credential stuffing attack.

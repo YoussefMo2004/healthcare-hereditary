@@ -1,0 +1,36 @@
+# Copy to terraform.tfvars and fill in values.
+# NEVER commit terraform.tfvars — it may contain sensitive defaults.
+
+aws_region  = "us-east-1"
+environment = "staging"
+project     = "healthcare"
+
+# Networking
+vpc_cidr           = "10.0.0.0/16"
+availability_zones = ["us-east-1a", "us-east-1b", "us-east-1c"]
+
+# EKS
+kubernetes_version  = "1.29"
+node_instance_types = ["t3.large"]
+node_min_size       = 2
+node_max_size       = 6
+node_desired_size   = 3
+
+# RDS
+rds_instance_class           = "db.t3.medium"
+rds_allocated_storage_gb     = 50
+rds_max_allocated_storage_gb = 200
+rds_postgres_version         = "15.6"
+rds_database_name            = "healthcare"
+rds_username                 = "healthcare_app"
+rds_multi_az                 = false       # set true for production
+rds_deletion_protection      = false       # set true for production
+
+# Redis
+redis_node_type       = "cache.t3.small"
+redis_engine_version  = "7.1"
+redis_num_cache_nodes = 1
+
+# ECR
+ecr_image_tag_mutability  = "IMMUTABLE"
+ecr_image_retention_count = 30

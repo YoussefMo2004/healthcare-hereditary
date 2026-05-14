@@ -1,0 +1,31 @@
+# docker-compose.override.yml — dev-only overrides
+# Automatically merged by Docker Compose when present.
+# DO NOT commit local personalizations — use docker-compose.local.yml (gitignored).
+
+services:
+  postgres:
+    # Expose pg_dump-friendly port on host for local introspection
+    ports:
+      - "5432:5432"
+
+  neo4j:
+    # Extra memory for local graph exploration
+    environment:
+      NEO4J_server_memory_heap_max__size: "2g"
+      NEO4J_server_memory_pagecache_size: "1g"
+
+  spark-master:
+    # Mount local pipelines/ so spark-submit can reference them without rebuilding
+    volumes:
+      - ../../pipelines:/opt/spark/work/pipelines:ro
+      - ../../libs:/opt/spark/work/libs:ro
+
+  spark-worker:
+    volumes:
+      - ../../pipelines:/opt/spark/work/pipelines:ro
+      - ../../libs:/opt/spark/work/libs:ro
+
+  mlflow:
+    # Allow local code to connect with same MLflow URI in .env
+    ports:
+      - "5000:5000"

@@ -1,0 +1,31 @@
+{
+  "type": "record",
+  "name": "PrescriptionIssued",
+  "namespace": "com.healthcare.events.v1",
+  "doc": "Emitted when a MedicationRequest (prescription) is issued for a patient.",
+  "fields": [
+    {"name": "event_id",              "type": "string"},
+    {"name": "event_timestamp",       "type": {"type": "long", "logicalType": "timestamp-micros"}},
+    {"name": "event_version",         "type": "string", "default": "1.0"},
+    {"name": "source_system",         "type": "string"},
+    {"name": "medication_request_id", "type": "string",
+     "doc": "UUID — matches medication_request.id in Postgres"},
+    {"name": "patient_id",            "type": "string"},
+    {"name": "encounter_id",          "type": ["null", "string"], "default": null},
+    {"name": "requester_id",          "type": ["null", "string"], "default": null,
+     "doc": "Physician UUID"},
+    {"name": "status",                "type": "string",
+     "doc": "FHIR status: active | completed | cancelled | ..."},
+    {"name": "intent",                "type": "string",
+     "doc": "FHIR intent: order | plan | proposal | ..."},
+    {"name": "medication_code_system","type": ["null", "string"], "default": null},
+    {"name": "medication_code",       "type": "string",
+     "doc": "RxNorm RXCUI"},
+    {"name": "medication_display",    "type": ["null", "string"], "default": null},
+    {"name": "dosage_text",           "type": ["null", "string"], "default": null},
+    {"name": "dosage_route",          "type": ["null", "string"], "default": null},
+    {"name": "dose_quantity",         "type": ["null", "double"], "default": null},
+    {"name": "dose_unit",             "type": ["null", "string"], "default": null},
+    {"name": "authored_on",           "type": {"type": "long", "logicalType": "timestamp-micros"}}
+  ]
+}

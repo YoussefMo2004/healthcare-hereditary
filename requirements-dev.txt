@@ -1,0 +1,26 @@
+# Healthcare Hereditary Disease Prediction System
+# Development dependencies for testing, linting, and type checking
+# Install with: pip install -r requirements-dev.txt
+
+# Core dependencies
+-r requirements.txt
+
+# Testing
+pytest==7.4.4
+pytest-cov==4.1.0
+pytest-asyncio==0.23.3
+pytest-mock==3.14.0
+
+# Code Quality
+ruff==0.3.5
+black==24.3.0
+mypy==1.9.0
+
+# Documentation
+sphinx==7.3.7
+sphinx-rtd-theme==2.0.0
+
+# Development Utilities
+ipython==8.22.2
+jupyter==1.0.0
+jupyterlab==4.1.5
