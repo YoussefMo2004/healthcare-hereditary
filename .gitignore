@@ -21,6 +21,11 @@ htmlcov/
 coverage.xml
 *.cover
 
+# Virtualenvs
+.venv-run/
+.venv*/
+venv*/
+
 # Secrets — never commit
 .env
 .env.*
