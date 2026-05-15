@@ -23,6 +23,8 @@ from datetime import date
 from fastapi import APIRouter, HTTPException, Request, status
 
 from libs.common.config import get_settings
+from libs.common.models.prediction_log import PredictionLog
+from services.api.db import DbSession
 from services.api.deps import CacheDep, ModelDep
 from services.api.schemas.requests import (
     PredictFromPrescriptionRequest,
@@ -53,6 +55,7 @@ async def predict_hereditary_risk(
     body: PredictHeredityRiskRequest,
     model: ModelDep,
     cache: CacheDep,
+    db: DbSession,
     request: Request,
 ) -> HeredityRiskResponse:
     """Predict hereditary disease risk for a patient.
@@ -65,6 +68,7 @@ async def predict_hereditary_risk(
         body: Request body with patient_id and options.
         model: Injected ModelService.
         cache: Injected CacheService.
+        db: Async database session.
         request: FastAPI request (used for request_id from state).
 
     Returns:
@@ -141,6 +145,20 @@ async def predict_hereditary_risk(
     payload = result.model_dump(mode="json")
     payload.pop("request_id", None)  # Don't cache the per-request ID
     await cache.set_json(cache_key, payload, cache.TTL_PREDICTION)
+
+    # ── Auto-log to DB ────────────────────────────────────────────────────────
+    prediction_log = PredictionLog(
+        patient_id=body.patient_id,
+        risk_score=risk_score,
+        risk_tier=result.risk_tier,
+        model_name=result.model_name,
+        model_version=result.model_version,
+        feature_date=feat_date,
+        shap_top_factors=[s.model_dump() for s in result.top_risk_factors] if result.top_risk_factors else None,
+        source="api",
+    )
+    db.add(prediction_log)
+    await db.flush()
 
     return result
 

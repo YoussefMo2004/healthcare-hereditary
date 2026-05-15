@@ -48,7 +48,16 @@ st.sidebar.title("🏥 Healthcare Prediction System")
 
 page = st.sidebar.radio(
     "Navigate",
-    ["📊 Dashboard", "👤 Patient Management", "🔮 Risk Prediction", "👨‍👩‍👧 Family Tree", "🤖 Model Training", "📈 Analytics"],
+    [
+        "📊 Dashboard", 
+        "👤 Patient Management", 
+        "🏥 Encounters & Vitals",
+        "📊 Batch Screening",
+        "🔮 Risk Prediction", 
+        "👨‍👩‍👧 Family Tree", 
+        "🤖 Model Training", 
+        "📈 Analytics"
+    ],
 )
 
 st.sidebar.markdown("---")
@@ -114,7 +123,6 @@ def predict_risk(model: Any, features: dict) -> tuple[float, str]:
         risk_category = "🔴 High"
     
     return risk_score, risk_category
-
 
 # ── Page: Dashboard ──────────────────────────────────────────────────────────
 
@@ -202,8 +210,20 @@ if page == "📊 Dashboard":
 # ── Page: Patient Management ─────────────────────────────────────────────────
 
 elif page == "👤 Patient Management":
-    from services.streamlit.pages.patient_management import render_patient_management
+    from services.streamlit.views.patient_management import render_patient_management
     render_patient_management()
+
+# ── Page: Encounters & Vitals ────────────────────────────────────────────────
+
+elif page == "🏥 Encounters & Vitals":
+    from services.streamlit.views.encounters_page import render_encounters_page
+    render_encounters_page()
+
+# ── Page: Batch Screening ────────────────────────────────────────────────────
+
+elif page == "📊 Batch Screening":
+    from services.streamlit.views.screening_page import render_screening_page
+    render_screening_page()
 
 
 # ── Page: Risk Prediction ────────────────────────────────────────────────────
@@ -634,6 +654,8 @@ st.markdown("""
 **Healthcare Hereditary Disease Prediction System** — All Phases Complete
 - 📊 Dashboard: System overview and KPIs
 - 👤 Patient Management: Register and manage patients, conditions, family, medications
+- 🏥 Encounters & Vitals: Manage visits and record vitals
+- 📊 Batch Screening: Panel-wide assessments and risk trends
 - 🔮 Risk Prediction: Patient-level risk scoring
 - 👨‍👩‍👧 Family Tree: Pedigree analysis
 - 🤖 Model Training: ML model management
