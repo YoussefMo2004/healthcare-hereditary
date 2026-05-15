@@ -199,6 +199,13 @@ if page == "📊 Dashboard":
     st.dataframe(pd.DataFrame(recent_data), use_container_width=True)
 
 
+# ── Page: Patient Management ─────────────────────────────────────────────────
+
+elif page == "👤 Patient Management":
+    from services.streamlit.pages.patient_management import render_patient_management
+    render_patient_management()
+
+
 # ── Page: Risk Prediction ────────────────────────────────────────────────────
 
 elif page == "🔮 Risk Prediction":

@@ -335,5 +335,237 @@ class MedicationResponse(BaseModel):
     created_at: Optional[datetime] = None
 
 
+# ── Encounter ─────────────────────────────────────────────────────────────────
+
+class EncounterCreate(BaseModel):
+    """Request body for POST /patients/{id}/encounters."""
+
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    encounter_class: str = Field(
+        default="AMB",
+        pattern=r"^(AMB|IMP|EMER|HH|VR|SS)$",
+        description="HL7 v3 ActCode: AMB=ambulatory, IMP=inpatient, EMER=emergency, HH=home health",
+    )
+    type_code: Optional[str] = Field(default=None, max_length=100)
+    type_display: Optional[str] = Field(default=None, max_length=255)
+    service_type: Optional[str] = Field(default=None, max_length=255)
+    facility_name: Optional[str] = Field(default=None, max_length=255)
+    facility_id: Optional[str] = Field(default=None, max_length=255)
+
+
+class EncounterUpdate(BaseModel):
+    """Request body for PUT /encounters/{id}."""
+
+    status: Optional[str] = Field(
+        default=None,
+        pattern=r"^(planned|arrived|triaged|in-progress|onleave|finished|cancelled|entered-in-error|unknown)$",
+    )
+    encounter_class: Optional[str] = Field(
+        default=None,
+        pattern=r"^(AMB|IMP|EMER|HH|VR|SS)$",
+    )
+    type_code: Optional[str] = Field(default=None, max_length=100)
+    type_display: Optional[str] = Field(default=None, max_length=255)
+    facility_name: Optional[str] = Field(default=None, max_length=255)
+
+
+class EncounterResponse(BaseModel):
+    """Encounter record returned by the API."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    patient_id: uuid.UUID
+    status: str
+    encounter_class: Optional[str] = None
+    type_code: Optional[str] = None
+    type_display: Optional[str] = None
+    service_type: Optional[str] = None
+    facility_name: Optional[str] = None
+    period_start: Optional[datetime] = None
+    period_end: Optional[datetime] = None
+    created_at: Optional[datetime] = None
+
+
+class EncounterDetailResponse(BaseModel):
+    """Encounter with linked clinical data."""
+
+    encounter: EncounterResponse
+    conditions: list[ConditionResponse] = []
+    observations: list["ObservationResponse"] = []
+    medications: list[MedicationResponse] = []
+
+
+# ── Observation ───────────────────────────────────────────────────────────────
+
+class ObservationCreate(BaseModel):
+    """Request body for POST /patients/{id}/observations."""
+
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    encounter_id: Optional[uuid.UUID] = None
+    code: str = Field(..., min_length=1, max_length=50, description="LOINC or SNOMED code")
+    code_system: str = Field(
+        default="http://loinc.org",
+        max_length=255,
+    )
+    code_display: Optional[str] = Field(default=None, max_length=500)
+    category: Optional[str] = Field(
+        default="vital-signs",
+        pattern=r"^(vital-signs|laboratory|imaging|exam|survey|social-history|activity)$",
+    )
+    status: str = Field(
+        default="final",
+        pattern=r"^(registered|preliminary|final|amended|corrected|cancelled|entered-in-error|unknown)$",
+    )
+    effective_datetime: datetime = Field(default_factory=datetime.utcnow)
+    value_quantity: Optional[float] = None
+    value_unit: Optional[str] = Field(default=None, max_length=50)
+    value_string: Optional[str] = Field(default=None, max_length=500)
+    value_boolean: Optional[bool] = None
+    interpretation: Optional[str] = Field(
+        default=None,
+        max_length=10,
+        description="HL7 v3: H=high, L=low, N=normal, A=abnormal",
+    )
+    ref_range_low: Optional[float] = None
+    ref_range_high: Optional[float] = None
+
+
+class VitalsCreate(BaseModel):
+    """Convenience schema for recording common vitals in one call."""
+
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    encounter_id: Optional[uuid.UUID] = None
+    effective_datetime: datetime = Field(default_factory=datetime.utcnow)
+    systolic_bp: Optional[float] = Field(default=None, ge=50, le=300, description="mmHg")
+    diastolic_bp: Optional[float] = Field(default=None, ge=20, le=200, description="mmHg")
+    heart_rate: Optional[float] = Field(default=None, ge=20, le=300, description="bpm")
+    temperature: Optional[float] = Field(default=None, ge=30, le=45, description="°C")
+    spo2: Optional[float] = Field(default=None, ge=50, le=100, description="%")
+    weight: Optional[float] = Field(default=None, ge=0.5, le=500, description="kg")
+    height: Optional[float] = Field(default=None, ge=20, le=300, description="cm")
+
+
+class ObservationUpdate(BaseModel):
+    """Request body for PUT /observations/{id}."""
+
+    status: Optional[str] = Field(
+        default=None,
+        pattern=r"^(registered|preliminary|final|amended|corrected|cancelled|entered-in-error|unknown)$",
+    )
+    value_quantity: Optional[float] = None
+    value_unit: Optional[str] = Field(default=None, max_length=50)
+    value_string: Optional[str] = Field(default=None, max_length=500)
+    interpretation: Optional[str] = Field(default=None, max_length=10)
+
+
+class ObservationResponse(BaseModel):
+    """Observation record returned by the API."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    patient_id: uuid.UUID
+    encounter_id: Optional[uuid.UUID] = None
+    status: str
+    category: Optional[str] = None
+    code: str
+    code_system: str
+    code_display: Optional[str] = None
+    effective_datetime: Optional[datetime] = None
+    value_quantity: Optional[float] = None
+    value_unit: Optional[str] = None
+    value_string: Optional[str] = None
+    value_boolean: Optional[bool] = None
+    interpretation: Optional[str] = None
+    ref_range_low: Optional[float] = None
+    ref_range_high: Optional[float] = None
+    created_at: Optional[datetime] = None
+
+
+# ── Batch Screening ───────────────────────────────────────────────────────────
+
+class BatchScreenRequest(BaseModel):
+    """Request body for POST /predict/batch-screen."""
+
+    patient_ids: Optional[list[uuid.UUID]] = Field(
+        default=None, max_length=500, description="Explicit patient UUIDs (max 500)"
+    )
+    filter_gender: Optional[str] = Field(
+        default=None, pattern=r"^(male|female|other|unknown)$"
+    )
+    filter_min_age: Optional[int] = Field(default=None, ge=0, le=150)
+    filter_max_age: Optional[int] = Field(default=None, ge=0, le=150)
+    include_shap: bool = Field(default=False)
+    top_n_factors: int = Field(default=3, ge=1, le=10)
+
+
+class BatchScreenJobResponse(BaseModel):
+    """Response for POST /predict/batch-screen (HTTP 202)."""
+
+    job_id: str
+    status: str  # pending | running | completed | failed
+    total_patients: int
+    progress: int = 0
+    message: str = ""
+
+
+class BatchScreenPatientResult(BaseModel):
+    """Single patient result within a batch screening job."""
+
+    patient_id: uuid.UUID
+    risk_score: float
+    risk_tier: str
+    shap_factors: Optional[list[dict]] = None
+
+
+class BatchScreenResultResponse(BaseModel):
+    """Response for GET /predict/batch-screen/{job_id}."""
+
+    job_id: str
+    status: str
+    total_patients: int
+    progress: int
+    results: list[BatchScreenPatientResult] = []
+    started_at: Optional[str] = None
+    completed_at: Optional[str] = None
+    message: str = ""
+
+
+# ── Risk History ──────────────────────────────────────────────────────────────
+
+class RiskHistoryEntry(BaseModel):
+    """Single prediction log entry."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    patient_id: uuid.UUID
+    risk_score: float
+    risk_tier: str
+    model_name: str
+    model_version: str
+    feature_date: str
+    shap_top_factors: Optional[dict] = None
+    source: str
+    predicted_at: Optional[datetime] = None
+
+
+class RiskTrendResponse(BaseModel):
+    """Risk trend analysis for a patient."""
+
+    patient_id: uuid.UUID
+    current_score: Optional[float] = None
+    previous_score: Optional[float] = None
+    trend: str  # improving | worsening | stable | insufficient_data
+    change_pct: Optional[float] = None
+    total_predictions: int
+    history: list[RiskHistoryEntry] = []
+
+
 # Forward reference resolution
 PatientSummaryResponse.model_rebuild()
+EncounterDetailResponse.model_rebuild()

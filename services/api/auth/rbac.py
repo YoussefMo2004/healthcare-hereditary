@@ -62,6 +62,8 @@ class Permission(str, Enum):
     READ_PATIENT = "read:patient"
     WRITE_PATIENT = "write:patient"
     WRITE_CLINICAL = "write:clinical"
+    WRITE_ENCOUNTER = "write:encounter"
+    RUN_BATCH_SCREEN = "run:batch_screen"
     VIEW_AUDIT_LOG = "view:audit_log"
     MANAGE_USERS = "manage:users"
 
@@ -75,6 +77,8 @@ ROLE_PERMISSIONS: dict[Role, frozenset[Permission]] = {
         Permission.READ_PATIENT,
         Permission.WRITE_PATIENT,
         Permission.WRITE_CLINICAL,
+        Permission.WRITE_ENCOUNTER,
+        Permission.RUN_BATCH_SCREEN,
     }),
     Role.RESEARCHER: frozenset({
         Permission.PREDICT_RISK,

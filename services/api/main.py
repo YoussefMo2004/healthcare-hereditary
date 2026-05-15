@@ -47,11 +47,15 @@ from services.api.middleware.metrics import MODEL_LOADED, PrometheusMetricsMiddl
 from services.api.middleware.rate_limit import RateLimitMiddleware
 from services.api.routers import health, patients, predictions
 from services.api.routers.auth import router as auth_router
+from services.api.routers.batch_screening import router as batch_screening_router
 from services.api.routers.conditions import router as conditions_router
+from services.api.routers.encounters import router as encounters_router
 from services.api.routers.family import router as family_router
 from services.api.routers.medications import router as medications_router
 from services.api.routers.metrics_router import router as metrics_router
+from services.api.routers.observations import router as observations_router
 from services.api.routers.patient_crud import router as patient_crud_router
+from services.api.routers.risk_history import router as risk_history_router
 from services.api.services.cache_service import CacheService
 from services.api.services.model_service import ModelService
 
@@ -180,6 +184,10 @@ def create_app() -> FastAPI:
     app.include_router(conditions_router)     # Condition CRUD
     app.include_router(family_router)         # Family relationship CRUD
     app.include_router(medications_router)    # Medication CRUD
+    app.include_router(encounters_router)     # Encounter/visit CRUD
+    app.include_router(observations_router)   # Observations/vitals CRUD
+    app.include_router(batch_screening_router) # Batch risk screening
+    app.include_router(risk_history_router)   # Risk history & trends
 
     return app
 
